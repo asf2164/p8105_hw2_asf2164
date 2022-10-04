@@ -84,8 +84,18 @@ snpmonths_df =
 fivethirtyeight_df =
   left_join(snpmonths_df, unemployment_df, by = c("year", "month"))
 
-
+ 
+nrow(fivethirtyeight_df) 
+ncol(fivethirtyeight_df)
+max(fivethirtyeight_df$year, na.rm=TRUE) 
+min(fivethirtyeight_df$year, na.rm=TRUE)
 ```
 
+The pols-month dataset contained 822 observation and 9 variables related to the number of national politicians who are democratic or republican at any given time. 
 
+The snp dataset contained 787 observation and 2 variables related to Standard & Poor's stock market index, which is a representative measure of the stock market as a whole. 
+
+The unemployment dataset contains 68 observation and 13 variables and shows the percentage of unemployment by month and year. 
+
+The new dataset contains `r nrow(fivethirtyeight_df)` observations and `r ncol(fivethirtyeight_df)` variables. It has whether the president is democratic or republican (variable = president), the S&P stock market index (variable = close), and the unemployment percentage (variable = unemployment percentage) by year and month. The dataset spans from year `r max(fivethirtyeight_df$year, na.rm=TRUE)` to year`r min(fivethirtyeight_df$year, na.rm=TRUE)`. 
 
