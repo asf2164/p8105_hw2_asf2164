@@ -1,0 +1,91 @@
+---
+title: "P8105_hw2_asf2164"
+output: github_document
+date: "2022-09-30"
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+```
+
+## Problem 2
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+mrtrash_df = 
+ read_excel("data/Trash-Wheel-Collection-Totals-7-2020.xlsx", sheet = "Mr. Trash Wheel") %>% 
+ janitor::clean_names() %>% 
+ drop_na(dumpster) %>% 
+mutate(sports_balls, as.integer(round(sports_balls))) %>% 
+mutate(source = "mr_trash", dumpster = as.numeric(dumpster)) 
+
+           
+proftrash_df = 
+ read_excel("data/Trash-Wheel-Collection-Totals-7-2020.xlsx", sheet = "Professor Trash Wheel") %>%
+ janitor::clean_names() %>% 
+ drop_na(dumpster) %>% 
+mutate(sports_balls, as.integer(round(sports_balls))) %>% 
+mutate(source = "prof_trash")
+
+trash_tidy = 
+  bind_rows(mrtrash_df, proftrash_df) %>% 
+  janitor::clean_names() %>% 
+  select(-x15, -x16, -x17)  
+  
+nrow(trash_tidy)
+with(trash_tidy, sum(weight_tons[source == 'prof_trash']))
+with(trash_tidy, mean(sports_balls[source == 'mr_trash'| year == "2020"]))
+
+
+```
+
+There are `nrow(trash_tidy)` observations. The key variables are weight_tons (weight of trash collected in tons) and sports_balls (number of sports balls collected). The total weight of trash collected by Professor Trash Wheel is `with(trash_tidy, sum(weight_tons[source == 'prof_trash']))`. The total number of sports balls collected by Mr. Trash Wheel in 2020 is `with(trash_tidy, mean(sports_balls[source == 'mr_trash'| year == "2020"]))`. 
+
+## Problem 3
+
+```{r}
+library(tidyverse)
+monthly_pols_df = 
+  read_csv("data/pols-month.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(col=mon, into=c("year", "month", "day")) %>%
+  mutate(across(.col = (c("year", "month")), as.integer)) %>% 
+  mutate(month = month.abb[month]) %>% 
+  mutate(president = case_when(prez_gop==1 ~ "gop", prez_dem == 1 ~ "dem")) %>% 
+  select(-prez_dem, -prez_gop, -day)  
+
+snp_df = 
+  read_csv("data/snp.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(date, into=c("month", "day", "year")) %>% 
+  mutate(across(.col = (c("year", "month")), as.integer)) %>% 
+  mutate(month = month.abb[month]) %>% 
+  mutate(year = if_else(year < 23, 2000+year, 1900+year)) %>% 
+  select(-day)
+
+unemployment_df = 
+  read_csv("data/unemployment.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    jan:dec, 
+    names_to = "month",
+    values_to = "unemployment percent"
+  ) %>%
+  mutate(across(.col = (c("year")), as.integer)) %>% 
+  mutate(month = case_when(month == "jan" ~ "Jan", month=="feb" ~ "Feb", month=="mar" ~ "Mar", month=="apr" ~ "Apr", month=="may" ~ "May", month=="jun" ~ "Jun", month=="jul" ~ "Jul", month=="aug" ~ "Aug", month=="sep" ~ "Sep", month=="oct" ~ "Oct", month=="nov" ~ "Nov", month=="dec" ~ "Dec"))
+  
+snpmonths_df = 
+  left_join(monthly_pols_df, snp_df, by = c("year", "month"))
+
+fivethirtyeight_df =
+  left_join(snpmonths_df, unemployment_df, by = c("year", "month"))
+
+
+```
+
+
+
