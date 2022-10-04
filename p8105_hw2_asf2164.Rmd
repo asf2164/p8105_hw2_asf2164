@@ -17,33 +17,33 @@ library(tidyverse)
 library(readxl)
 
 mrtrash_df = 
- read_excel("data/Trash-Wheel-Collection-Totals-7-2020.xlsx", sheet = "Mr. Trash Wheel") %>% 
+ read_excel("data/Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>% 
  janitor::clean_names() %>% 
  drop_na(dumpster) %>% 
-mutate(sports_balls, as.integer(round(sports_balls))) %>% 
+  mutate(sports_balls = as.integer(sports_balls)) %>% 
+  mutate(across(.col = (c("year")), as.integer)) %>% 
 mutate(source = "mr_trash", dumpster = as.numeric(dumpster)) 
-
            
 proftrash_df = 
- read_excel("data/Trash-Wheel-Collection-Totals-7-2020.xlsx", sheet = "Professor Trash Wheel") %>%
+ read_excel("data/Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
  janitor::clean_names() %>% 
- drop_na(dumpster) %>% 
-mutate(sports_balls, as.integer(round(sports_balls))) %>% 
-mutate(source = "prof_trash")
+ drop_na(dumpster) %>%
+   mutate(across(.col = (c("year")), as.integer)) %>% 
+ mutate(source = "prof_trash")
 
 trash_tidy = 
   bind_rows(mrtrash_df, proftrash_df) %>% 
   janitor::clean_names() %>% 
-  select(-x15, -x16, -x17)  
-  
+  select(-x15, -x16) 
+ 
 nrow(trash_tidy)
-with(trash_tidy, sum(weight_tons[source == 'prof_trash']))
-with(trash_tidy, mean(sports_balls[source == 'mr_trash'| year == "2020"]))
+with(trash_tidy, sum(weight_tons[source == 'prof_trash'], na.rm = TRUE))
+with(trash_tidy, mean(sports_balls[source == 'mr_trash' | year == "2020"], na.rm = TRUE))
 
 
 ```
 
-There are `nrow(trash_tidy)` observations. The key variables are weight_tons (weight of trash collected in tons) and sports_balls (number of sports balls collected). The total weight of trash collected by Professor Trash Wheel is `with(trash_tidy, sum(weight_tons[source == 'prof_trash']))`. The total number of sports balls collected by Mr. Trash Wheel in 2020 is `with(trash_tidy, mean(sports_balls[source == 'mr_trash'| year == "2020"]))`. 
+There are `r nrow(trash_tidy)` observations. The key variables are weight_tons (weight of trash collected in tons) and sports_balls (number of sports balls collected). The total weight of trash collected by Professor Trash Wheel is `r with(trash_tidy, sum(weight_tons[source == 'prof_trash'], na.rm = TRUE))`. The total number of sports balls collected by Mr. Trash Wheel in 2020 is `r with(trash_tidy, mean(sports_balls[source == 'mr_trash'| year == "2020"], na.rm = TRUE))`. 
 
 ## Problem 3
 
