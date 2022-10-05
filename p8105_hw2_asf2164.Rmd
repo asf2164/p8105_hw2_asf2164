@@ -15,45 +15,59 @@ library(readxl)
 library(tidyverse)
 library(readxl)
 
-trans_ent = 
-  read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv", col_types = cols(Route8 = "c", Route9 = "c", Route10 = "c", Route11 = "c")) %>% 
-  janitor::clean_names() %>% 
+trans_ent =
+  read_csv(
+    "data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+    col_types = cols(
+      Route8 = "c",
+      Route9 = "c",
+      Route10 = "c",
+      Route11 = "c"
+    )
+  ) %>%
+  janitor::clean_names() %>%
   select(
-    line, station_name, station_latitude, station_longitude, 
-    starts_with("route"), entry, exit_only, vending, entrance_type, 
-    ada) %>% 
+    line,
+    station_name,
+    station_latitude,
+    station_longitude,
+    starts_with("route"),
+    entry,
+    exit_only,
+    vending,
+    entrance_type,
+    ada
+  ) %>%
   mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
 
-trans_ent %>% 
-  select(station_name, line) %>% 
+trans_ent %>%
+  select(station_name, line) %>%
   distinct
 
-trans_ent %>% 
-  filter(ada == TRUE) %>% 
-  select(station_name, line) %>% 
+trans_ent %>%
+  filter(ada == TRUE) %>%
+  select(station_name, line) %>%
   distinct
 
-trans_ent %>% 
-  filter(vending == "NO") %>% 
-  pull(entry) %>% 
+trans_ent %>%
+  filter(vending == "NO") %>%
+  pull(entry) %>%
   mean
 
-trans_ent %>% 
-  pivot_longer(
-    route1:route11,
-    names_to = "route_num",
-    values_to = "route") %>% 
-  filter(route == "A") %>% 
-  select(station_name, line) %>% 
+trans_ent %>%
+  pivot_longer(route1:route11,
+               names_to = "route_num",
+               values_to = "route") %>%
+  filter(route == "A") %>%
+  select(station_name, line) %>%
   distinct
 
-trans_ent %>% 
-  pivot_longer(
-    route1:route11,
-    names_to = "route_num",
-    values_to = "route") %>% 
-  filter(route == "A", ada == TRUE) %>% 
-  select(station_name, line) %>% 
+trans_ent %>%
+  pivot_longer(route1:route11,
+               names_to = "route_num",
+               values_to = "route") %>%
+  filter(route == "A", ada == TRUE) %>%
+  select(station_name, line) %>%
   distinct
 ```
 
@@ -64,29 +78,30 @@ trans_ent %>%
 library(tidyverse)
 library(readxl)
 
-mrtrash_df = 
- read_excel("data/Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>% 
- janitor::clean_names() %>% 
- drop_na(dumpster) %>% 
-  mutate(sports_balls = as.integer(sports_balls)) %>% 
-  mutate(across(.col = (c("year")), as.integer)) %>% 
-mutate(source = "mr_trash", dumpster = as.numeric(dumpster)) 
-           
-proftrash_df = 
- read_excel("data/Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
- janitor::clean_names() %>% 
- drop_na(dumpster) %>%
-   mutate(across(.col = (c("year")), as.integer)) %>% 
- mutate(source = "prof_trash")
+mrtrash_df =
+  read_excel("data/Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
+  janitor::clean_names() %>%
+  drop_na(dumpster) %>%
+  mutate(sports_balls = as.integer(sports_balls)) %>%
+  mutate(across(.col = (c("year")), as.integer)) %>%
+  mutate(source = "mr_trash", dumpster = as.numeric(dumpster))
 
-trash_tidy = 
-  bind_rows(mrtrash_df, proftrash_df) %>% 
-  janitor::clean_names() %>% 
-  select(-x15, -x16) 
- 
+proftrash_df =
+  read_excel("data/Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
+  janitor::clean_names() %>%
+  drop_na(dumpster) %>%
+  mutate(across(.col = (c("year")), as.integer)) %>%
+  mutate(source = "prof_trash")
+
+trash_tidy =
+  bind_rows(mrtrash_df, proftrash_df) %>%
+  janitor::clean_names() %>%
+  select(-x15,-x16)
+
 nrow(trash_tidy)
 with(trash_tidy, sum(weight_tons[source == 'prof_trash'], na.rm = TRUE))
-with(trash_tidy, mean(sports_balls[source == 'mr_trash' | year == "2020"], na.rm = TRUE))
+with(trash_tidy, mean(sports_balls[source == 'mr_trash' |
+                                     year == "2020"], na.rm = TRUE))
 
 
 ```
@@ -97,49 +112,62 @@ There are `r nrow(trash_tidy)` observations. The key variables are weight_tons (
 
 ```{r}
 library(tidyverse)
-monthly_pols_df = 
-  read_csv("data/pols-month.csv") %>% 
-  janitor::clean_names() %>% 
-  separate(col=mon, into=c("year", "month", "day")) %>%
-  mutate(across(.col = (c("year", "month")), as.integer)) %>% 
-  mutate(month = month.abb[month]) %>% 
-  mutate(president = case_when(prez_gop==1 ~ "gop", prez_dem == 1 ~ "dem")) %>% 
-  select(-prez_dem, -prez_gop, -day)  
+monthly_pols_df =
+  read_csv("data/pols-month.csv") %>%
+  janitor::clean_names() %>%
+  separate(col = mon, into = c("year", "month", "day")) %>%
+  mutate(across(.col = (c("year", "month")), as.integer)) %>%
+  mutate(month = month.abb[month]) %>%
+  mutate(president = case_when(prez_gop == 1 ~ "gop", prez_dem == 1 ~ "dem")) %>%
+  select(-prez_dem,-prez_gop,-day)
 
-snp_df = 
-  read_csv("data/snp.csv") %>% 
-  janitor::clean_names() %>% 
-  separate(date, into=c("month", "day", "year")) %>% 
-  mutate(across(.col = (c("year", "month")), as.integer)) %>% 
-  mutate(month = month.abb[month]) %>% 
-  mutate(year = if_else(year < 23, 2000+year, 1900+year)) %>% 
+snp_df =
+  read_csv("data/snp.csv") %>%
+  janitor::clean_names() %>%
+  separate(date, into = c("month", "day", "year")) %>%
+  mutate(across(.col = (c("year", "month")), as.integer)) %>%
+  mutate(month = month.abb[month]) %>%
+  mutate(year = if_else(year < 23, 2000 + year, 1900 + year)) %>%
   select(-day)
 
-unemployment_df = 
-  read_csv("data/unemployment.csv") %>% 
-  janitor::clean_names() %>% 
-  pivot_longer(
-    jan:dec, 
-    names_to = "month",
-    values_to = "unemployment percent"
-  ) %>%
-  mutate(across(.col = (c("year")), as.integer)) %>% 
-  mutate(month = case_when(month == "jan" ~ "Jan", month=="feb" ~ "Feb", month=="mar" ~ "Mar", month=="apr" ~ "Apr", month=="may" ~ "May", month=="jun" ~ "Jun", month=="jul" ~ "Jul", month=="aug" ~ "Aug", month=="sep" ~ "Sep", month=="oct" ~ "Oct", month=="nov" ~ "Nov", month=="dec" ~ "Dec"))
-  
-snpmonths_df = 
+unemployment_df =
+  read_csv("data/unemployment.csv") %>%
+  janitor::clean_names() %>%
+  pivot_longer(jan:dec,
+               names_to = "month",
+               values_to = "unemployment percent") %>%
+  mutate(across(.col = (c("year")), as.integer)) %>%
+  mutate(
+    month = case_when(
+      month == "jan" ~ "Jan",
+      month == "feb" ~ "Feb",
+      month == "mar" ~ "Mar",
+      month == "apr" ~ "Apr",
+      month == "may" ~ "May",
+      month == "jun" ~ "Jun",
+      month == "jul" ~ "Jul",
+      month == "aug" ~ "Aug",
+      month == "sep" ~ "Sep",
+      month == "oct" ~ "Oct",
+      month == "nov" ~ "Nov",
+      month == "dec" ~ "Dec"
+    )
+  )
+
+snpmonths_df =
   left_join(monthly_pols_df, snp_df, by = c("year", "month"))
 
 fivethirtyeight_df =
   left_join(snpmonths_df, unemployment_df, by = c("year", "month"))
 
- 
-nrow(fivethirtyeight_df) 
+
+nrow(fivethirtyeight_df)
 ncol(fivethirtyeight_df)
-max(fivethirtyeight_df$year, na.rm=TRUE) 
-min(fivethirtyeight_df$year, na.rm=TRUE)
+max(fivethirtyeight_df$year, na.rm = TRUE)
+min(fivethirtyeight_df$year, na.rm = TRUE)
 ```
 
-The pols-month dataset contained 822 observation and 9 variables related to the number of national politicians who are democratic or republican at any given time. 
+The pols-month dataset contained 822 observation and 11 variables related to the number of national politicians who are democratic or republican at any given time. 
 
 The snp dataset contained 787 observation and 2 variables related to Standard & Poor's stock market index, which is a representative measure of the stock market as a whole. 
 
